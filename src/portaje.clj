@@ -1,6 +1,8 @@
 (ns portaje
   (:use [clojure.test])
-  (:require [clojure.contrib.str-utils2 :as s]))
+  (:import [java.io File])
+  (:require [clojure.contrib.str-utils2 :as s])
+  (:use [clojure.contrib.duck-streams :only (read-lines)]))
 
 (defn parse-release [release]
   "Returns the number of this release and (rest release)"
@@ -35,6 +37,11 @@
      :name package,
      :version version,
      :release release}))
+
+(defn get-package-specs [keyword-dir]
+  "Returns a lazy sequence of files found in keyword-dir"
+  (let [file-list (filter #(.isFile %) (file-seq (File. keyword-dir)))]
+    (map #(read-lines %) file-list)))
 
 (deftest test-parse-release
   (is (= ["3" ["1.0" "clojure"]]
