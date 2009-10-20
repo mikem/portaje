@@ -37,17 +37,24 @@
      :version version,
      :release release}))
 
-(defn is-comment-or-blank? [line]
+(defn comment-or-blank? [line]
   (or (if (re-matches #"^#.*" line) true false)
       (if (re-matches #"^\s*$" line) true false)))
 
 (defn get-package-specs [file]
-  "Returns a vector of lines containing package specs found in file"
-  (remove is-comment-or-blank? (read-lines file)))
+  "Returns a lazy seq of lines containing package specs found in file"
+  (remove comment-or-blank? (read-lines file)))
 
 (defn get-package-spec-files [keyword-dir]
   "Returns a lazy sequence of files found in keyword-dir"
   (let [file-list (filter #(.isFile %) (file-seq (File. keyword-dir)))]
     (map #(get-package-specs %) file-list)))
 
-(get-package-specs "/etc/portage/package.keywords/firefox")
+(defn specifies-version? [package-spec]
+  (= \= (first package-spec)))
+
+(defn process-spec-list [specs]
+  (map #(parse-package-spec %) (filter specifies-version? specs)))
+
+;(process-spec-list (get-package-specs "/etc/portage/package.keywords/firefox"))
+;(get-package-specs "/etc/portage/package.keywords/firefox")
