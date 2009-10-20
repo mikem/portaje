@@ -37,7 +37,17 @@
      :version version,
      :release release}))
 
-(defn get-package-specs [keyword-dir]
+(defn is-comment-or-blank? [line]
+  (or (if (re-matches #"^#.*" line) true false)
+      (if (re-matches #"^\s*$" line) true false)))
+
+(defn get-package-specs [file]
+  "Returns a vector of lines containing package specs found in file"
+  (remove is-comment-or-blank? (read-lines file)))
+
+(defn get-package-spec-files [keyword-dir]
   "Returns a lazy sequence of files found in keyword-dir"
   (let [file-list (filter #(.isFile %) (file-seq (File. keyword-dir)))]
-    (map #(read-lines %) file-list)))
+    (map #(get-package-specs %) file-list)))
+
+(get-package-specs "/etc/portage/package.keywords/firefox")
